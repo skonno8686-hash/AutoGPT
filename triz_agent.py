@@ -1,0 +1,679 @@
+#!/usr/bin/env python3
+"""
+TRIZ Innovation Agent
+====================
+TRIZの40発明原理を用いてアイデアを発展させ、
+ビジネス実現性の観点で有望なアイデアに絞り込むエージェント。
+
+Usage:
+    python triz_agent.py
+    python triz_agent.py --idea "あなたのアイデア"
+    python triz_agent.py --idea "あなたのアイデア" --top 5 --lang ja
+"""
+
+import os
+import sys
+import json
+import argparse
+import textwrap
+from pathlib import Path
+from typing import Optional
+
+# .env ファイルを自動読み込み（python-dotenv が利用可能な場合）
+try:
+    from dotenv import load_dotenv
+    _env = Path(__file__).parent / ".env"
+    if _env.exists():
+        load_dotenv(_env)
+except ImportError:
+    pass
+
+import anthropic
+
+# ────────────────────────────────────────────────
+# 40 TRIZ 発明原理 定義
+# ────────────────────────────────────────────────
+TRIZ_PRINCIPLES = [
+    {
+        "id": 1,
+        "name": "分割 (Segmentation)",
+        "description": "物体・システム・プロセスを独立した部分に分割する。組み立て/分解しやすくする。分割の程度を増加させる。",
+        "keywords": ["モジュール化", "区分け", "パーツ化", "個別化"],
+    },
+    {
+        "id": 2,
+        "name": "抽出 (Taking out)",
+        "description": "物体・システムから干渉している部分や特性を分離する。必要な部分や特性だけを抽出する。",
+        "keywords": ["エッセンス抽出", "コア分離", "不要除去"],
+    },
+    {
+        "id": 3,
+        "name": "局所的品質 (Local quality)",
+        "description": "均質な構造から不均質な構造へ移行する。物体や環境の各部分を最適な条件で機能させる。各部分に固有の機能を持たせる。",
+        "keywords": ["ローカル最適化", "カスタマイズ", "場所特化"],
+    },
+    {
+        "id": 4,
+        "name": "非対称 (Asymmetry)",
+        "description": "対称な形状を非対称に変える。すでに非対称なら非対称の程度を増加させる。",
+        "keywords": ["非均一", "左右差", "片側強化"],
+    },
+    {
+        "id": 5,
+        "name": "統合 (Merging)",
+        "description": "同一または類似の物体・操作を空間的に結合する。時間的に並列・同時に行う。",
+        "keywords": ["統合", "合体", "同時実行", "並列化"],
+    },
+    {
+        "id": 6,
+        "name": "多機能化 (Universality)",
+        "description": "部品が複数の機能を果たすようにする。他の部品の機能を不要にする。",
+        "keywords": ["多用途", "複合機能", "オールインワン"],
+    },
+    {
+        "id": 7,
+        "name": "入れ子構造 (Nested doll)",
+        "description": "ある物体を別の物体の中に入れる。入れ子式に複数の物体を通過させる。",
+        "keywords": ["入れ子", "埋め込み", "コンパクト化", "包含"],
+    },
+    {
+        "id": 8,
+        "name": "釣り合いおもり (Anti-weight)",
+        "description": "重力などの有害な力を補償するために別の力と結合する。有害な力を有益な力と結合する。",
+        "keywords": ["バランス", "補償", "相殺", "カウンター"],
+    },
+    {
+        "id": 9,
+        "name": "事前の反作用 (Preliminary anti-action)",
+        "description": "有害な影響を事前に知っている場合、予め反作用を加えておく。事前に応力をかけ、使用時の有害な応力を補償する。",
+        "keywords": ["予防", "プリロード", "事前対策", "リスクヘッジ"],
+    },
+    {
+        "id": 10,
+        "name": "事前の作用 (Preliminary action)",
+        "description": "要求される変化の全てまたは一部を事前に実行する。最も便利な位置から活動できるように事前に配置する。",
+        "keywords": ["事前準備", "プリセット", "先行投資", "下準備"],
+    },
+    {
+        "id": 11,
+        "name": "事前のクッション (Beforehand cushioning)",
+        "description": "比較的低い信頼性の物体について、非常用の手段を事前に準備することでリスクを補償する。",
+        "keywords": ["バックアップ", "冗長性", "フェイルセーフ", "保険"],
+    },
+    {
+        "id": 12,
+        "name": "等ポテンシャル (Equipotentiality)",
+        "description": "作動条件を変えることで、物体を持ち上げたり降ろしたりする必要性をなくす。",
+        "keywords": ["フラット化", "段差なし", "アクセシビリティ", "均等化"],
+    },
+    {
+        "id": 13,
+        "name": "逆発想 (The other way round)",
+        "description": "問題解決に使う作用を逆にする。動く部分を固定し、固定していた部分を動かす。物体や過程を上下・内外反転させる。",
+        "keywords": ["逆転", "裏返し", "反転", "アンチテーゼ"],
+    },
+    {
+        "id": 14,
+        "name": "曲面化 (Spheroidality)",
+        "description": "直線的な部分を球面的なものに変える。平面を球面に、立方体を球体に変える。ローラー・ボール・らせんを使う。",
+        "keywords": ["曲線化", "円形", "スパイラル", "カーブ"],
+    },
+    {
+        "id": 15,
+        "name": "ダイナミクス (Dynamics)",
+        "description": "物体・環境・プロセスの特性を、各動作段階で最適となるよう調整可能にする。物体を相互にスライドするいくつかの部分に分割する。固定した物体を動けるようにする。",
+        "keywords": ["動的変化", "適応", "フレキシブル", "可変"],
+    },
+    {
+        "id": 16,
+        "name": "過不足作用 (Partial or excessive actions)",
+        "description": "100%の効果達成が難しければ、少し多めか少なめの効果を達成する。問題が単純化される。",
+        "keywords": ["概算", "近似", "過剰提供", "MVP"],
+    },
+    {
+        "id": 17,
+        "name": "次元移行 (Another dimension)",
+        "description": "物体を1次元から2次元・3次元へ移行する。多層構造を用いる。物体を傾けたり横にしたりする。",
+        "keywords": ["多次元", "レイヤー化", "立体化", "視点変換"],
+    },
+    {
+        "id": 18,
+        "name": "機械的振動 (Mechanical vibration)",
+        "description": "物体を振動・振盪させる。すでに振動しているなら振動数を高める。超音波振動を用いる。",
+        "keywords": ["振動", "周期的刺激", "リズム", "パルス"],
+    },
+    {
+        "id": 19,
+        "name": "周期的作用 (Periodic action)",
+        "description": "連続的な作用を周期的・拍動的な作用に置き換える。すでに周期的なら周波数を変える。拍動間のポーズを利用する。",
+        "keywords": ["定期的", "サイクル", "インターバル", "リピート"],
+    },
+    {
+        "id": 20,
+        "name": "有益作用の継続 (Continuity of useful action)",
+        "description": "全ての部品が常にフル稼働するよう継続的に作業を行う。遊休・中断的・中間的作業をなくす。",
+        "keywords": ["連続稼働", "ノンストップ", "効率最大化", "フル活用"],
+    },
+    {
+        "id": 21,
+        "name": "高速実行 (Skipping)",
+        "description": "有害または危険なプロセスを高速で実行する。",
+        "keywords": ["高速化", "スプリント", "スキップ", "超高速"],
+    },
+    {
+        "id": 22,
+        "name": "災い転じて福となす (Blessing in disguise)",
+        "description": "有害な要因・特に環境の有害な影響を、正の効果を得るために利用する。有害なものを有害なものと組み合わせて除去する。",
+        "keywords": ["問題の活用", "廃棄物利用", "ピンチをチャンスに", "副産物活用"],
+    },
+    {
+        "id": 23,
+        "name": "フィードバック (Feedback)",
+        "description": "フィードバックを導入する。すでにフィードバックがあるならその量・影響を変える。",
+        "keywords": ["フィードバックループ", "センサー", "自動調整", "リアルタイム監視"],
+    },
+    {
+        "id": 24,
+        "name": "仲介物 (Intermediary)",
+        "description": "中間物・中継プロセスを使う。ある物体を別の物体に一時的に結合する。",
+        "keywords": ["仲介", "プラットフォーム", "マーケットプレイス", "メディエーター"],
+    },
+    {
+        "id": 25,
+        "name": "セルフサービス (Self-service)",
+        "description": "物体が補助・修復機能を実行することで、自分自身にサービスする。廃棄物・空白エネルギーを利用する。",
+        "keywords": ["自動化", "セルフサービス", "自律", "自己修復"],
+    },
+    {
+        "id": 26,
+        "name": "コピー (Copying)",
+        "description": "高価・こわれやすい・不便な物体の代わりに安いコピーを使う。可視光コピーを赤外線・紫外線コピーに置き換える。",
+        "keywords": ["デジタル化", "バーチャル化", "シミュレーション", "スケール複製"],
+    },
+    {
+        "id": 27,
+        "name": "安価な短命 (Cheap short-living)",
+        "description": "高価で耐久性のある物体を安価な物体の集まりに置き換え、品質をある程度犠牲にする。",
+        "keywords": ["使い捨て", "サブスクリプション", "レンタル", "低コスト"],
+    },
+    {
+        "id": 28,
+        "name": "機械的作用の置換 (Mechanics substitution)",
+        "description": "機械的手段を感覚的手段に置き換える。電気・磁気・電磁界を物体との相互作用に使う。",
+        "keywords": ["センサー化", "デジタル化", "電子化", "非接触"],
+    },
+    {
+        "id": 29,
+        "name": "空気・水圧 (Pneumatics and hydraulics)",
+        "description": "固体部分の代わりに気体・液体を用いる。空気・水圧・ハイドロスタティック・エア・クッションを使う。",
+        "keywords": ["流体", "柔軟性", "充填", "適応形状"],
+    },
+    {
+        "id": 30,
+        "name": "柔軟な薄膜・フィルム (Flexible shells and thin films)",
+        "description": "3次元構造の代わりに柔軟な薄膜・フィルムを使う。薄膜・フィルムを使って物体を環境から分離する。",
+        "keywords": ["薄膜", "コーティング", "ラッピング", "スキン"],
+    },
+    {
+        "id": 31,
+        "name": "多孔性材料 (Porous materials)",
+        "description": "物体を多孔性にする。物体がすでに多孔性なら孔を有用な物質で充填する。",
+        "keywords": ["多孔質", "フィルター", "通気性", "網目構造"],
+    },
+    {
+        "id": 32,
+        "name": "色の変化 (Color changes)",
+        "description": "物体・環境の色や透明度を変える。光を吸収しやすくするために物体・環境に色をつける。色の添加剤・蛍光トレーサーを使う。",
+        "keywords": ["可視化", "インジケーター", "視覚的フィードバック", "カラーコード"],
+    },
+    {
+        "id": 33,
+        "name": "均質性 (Homogeneity)",
+        "description": "主要物体と相互作用する物体を同じ材料で作る。",
+        "keywords": ["標準化", "統一規格", "互換性", "エコシステム統合"],
+    },
+    {
+        "id": 34,
+        "name": "廃棄と回収 (Discarding and recovering)",
+        "description": "機能を果たした物体の部品を廃棄・変化させる。機能中に直接物体の消耗部品を復元する。",
+        "keywords": ["再生可能", "循環型", "廃棄後回収", "サーキュラーエコノミー"],
+    },
+    {
+        "id": 35,
+        "name": "パラメータの変化 (Parameter changes)",
+        "description": "物体の物理的状態・濃度・柔軟性・温度などのパラメータを変化させる。",
+        "keywords": ["パラメータ調整", "カスタマイズ", "チューニング", "最適化"],
+    },
+    {
+        "id": 36,
+        "name": "相変化 (Phase transitions)",
+        "description": "相変化中に生じる現象（体積の変化・熱の吸収や放出など）を利用する。",
+        "keywords": ["状態変化", "転換点", "ブレイクスルー", "パラダイムシフト"],
+    },
+    {
+        "id": 37,
+        "name": "熱膨張 (Thermal expansion)",
+        "description": "熱膨張・熱収縮する材料を使う。異なる熱膨張係数を持つ材料を使う。",
+        "keywords": ["温度変化活用", "環境適応", "熱エネルギー", "温度差利用"],
+    },
+    {
+        "id": 38,
+        "name": "酸化促進 (Strong oxidants)",
+        "description": "通常の空気を酸素富化した空気に置き換える。酸化剤でアクティブ化する。オゾン・酸化窒素を使う。",
+        "keywords": ["触媒作用", "加速", "反応促進", "エネルギー強化"],
+    },
+    {
+        "id": 39,
+        "name": "不活性雰囲気 (Inert atmosphere)",
+        "description": "通常の環境を不活性な環境に置き換える。真空下でプロセスを実行する。",
+        "keywords": ["保護環境", "安全空間", "隔離", "無菌化"],
+    },
+    {
+        "id": 40,
+        "name": "複合材料 (Composite materials)",
+        "description": "均質な材料から複合材料に移行する。",
+        "keywords": ["ハイブリッド", "異種融合", "クロスインダストリー", "組み合わせ"],
+    },
+]
+
+# ────────────────────────────────────────────────
+# バッチ設定
+# ────────────────────────────────────────────────
+BATCH_SIZE = 5  # 1回のAPI呼び出しで処理する原理数
+
+
+def create_client() -> anthropic.Anthropic:
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("エラー: ANTHROPIC_API_KEY 環境変数が設定されていません。")
+        print("  export ANTHROPIC_API_KEY='your-key-here'")
+        sys.exit(1)
+    return anthropic.Anthropic(api_key=api_key)
+
+
+def apply_principles_batch(
+    client: anthropic.Anthropic,
+    idea: str,
+    principles: list[dict],
+    lang: str = "ja",
+) -> list[dict]:
+    """複数のTRIZ原理を一括で適用し、アイデアを生成する。"""
+
+    principles_text = "\n".join(
+        f"原理{p['id']}: {p['name']}\n  説明: {p['description']}\n  キーワード: {', '.join(p['keywords'])}"
+        for p in principles
+    )
+
+    lang_instruction = "回答は日本語で" if lang == "ja" else "Respond in English"
+
+    prompt = f"""あなたはTRIZ発明手法の専門家です。以下のオリジナルアイデアに対して、指定されたTRIZ発明原理を一つずつ適用し、新しいビジネスアイデアを生成してください。
+
+## オリジナルアイデア
+{idea}
+
+## 適用するTRIZ原理
+{principles_text}
+
+## 指示
+各原理について以下を出力してください：
+1. その原理の本質をオリジナルアイデアにどう適用するか
+2. 具体的な新しいビジネスアイデア（1〜2文で簡潔に）
+3. 想定顧客・市場
+
+必ず以下のJSON形式で出力してください（マークダウンなし）:
+{{
+  "results": [
+    {{
+      "principle_id": <原理番号>,
+      "principle_name": "<原理名>",
+      "application": "<この原理をどう適用したか>",
+      "new_idea": "<具体的な新ビジネスアイデア>",
+      "target_market": "<想定顧客・市場>"
+    }}
+  ]
+}}
+
+{lang_instruction}。JSONのみ出力してください。"""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=4096,
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    response_text = message.content[0].text.strip()
+
+    # JSON抽出（```json ブロックが含まれる場合に対応）
+    if "```" in response_text:
+        start = response_text.find("{")
+        end = response_text.rfind("}") + 1
+        response_text = response_text[start:end]
+
+    try:
+        data = json.loads(response_text)
+        return data.get("results", [])
+    except json.JSONDecodeError as e:
+        print(f"  [警告] JSON解析エラー: {e}")
+        return []
+
+
+def evaluate_business_feasibility(
+    client: anthropic.Anthropic,
+    original_idea: str,
+    generated_ideas: list[dict],
+    top_n: int = 5,
+) -> list[dict]:
+    """生成されたアイデアをビジネス実現性の観点で評価・ランキングする。"""
+
+    ideas_text = "\n\n".join(
+        f"[原理{item['principle_id']}: {item['principle_name']}]\n"
+        f"アイデア: {item['new_idea']}\n"
+        f"市場: {item['target_market']}"
+        for item in generated_ideas
+        if item.get("new_idea")
+    )
+
+    prompt = f"""あなたは事業開発・スタートアップ投資の専門家です。以下のアイデアリストを、ビジネス実現性の観点で評価してください。
+
+## オリジナルアイデア
+{original_idea}
+
+## 評価対象アイデア（TRIZで生成）
+{ideas_text}
+
+## 評価基準（各10点満点）
+1. **市場規模・成長性**: 対象市場の大きさと将来性
+2. **実現容易性**: 技術的・資金的・規制面での実現のしやすさ
+3. **収益モデル明確性**: マネタイズの明確さと持続可能性
+4. **競合優位性**: 差別化要因と参入障壁
+5. **イノベーション度**: 既存解決策からの革新性
+
+上位{top_n}件を選び、以下のJSON形式で出力してください：
+{{
+  "top_ideas": [
+    {{
+      "rank": 1,
+      "principle_id": <原理番号>,
+      "principle_name": "<原理名>",
+      "idea": "<アイデア内容>",
+      "target_market": "<対象市場>",
+      "scores": {{
+        "market_size": <点数>,
+        "feasibility": <点数>,
+        "revenue_model": <点数>,
+        "competitive_advantage": <点数>,
+        "innovation": <点数>
+      }},
+      "total_score": <合計点数>,
+      "why_promising": "<このアイデアが有望な理由（2〜3文）>",
+      "key_risks": "<主要なリスクと対策（1〜2文）>",
+      "next_steps": "<最初に取るべきアクション（箇条書き3点）"
+    }}
+  ],
+  "summary": "<全体的な考察（3〜5文）>"
+}}
+
+JSONのみ出力してください。"""
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=4096,
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    response_text = message.content[0].text.strip()
+
+    if "```" in response_text:
+        start = response_text.find("{")
+        end = response_text.rfind("}") + 1
+        response_text = response_text[start:end]
+
+    try:
+        data = json.loads(response_text)
+        return data
+    except json.JSONDecodeError as e:
+        print(f"  [警告] 評価JSON解析エラー: {e}")
+        return {"top_ideas": [], "summary": "評価中にエラーが発生しました。"}
+
+
+def print_banner():
+    banner = """
+╔══════════════════════════════════════════════════════════════╗
+║           TRIZ イノベーション エージェント                   ║
+║     40発明原理 × ビジネス実現性評価                         ║
+╚══════════════════════════════════════════════════════════════╝
+"""
+    print(banner)
+
+
+def print_progress(current: int, total: int, batch_ids: list[int]):
+    ids_str = ", ".join(str(i) for i in batch_ids)
+    pct = int(current / total * 100)
+    bar = "█" * (pct // 5) + "░" * (20 - pct // 5)
+    print(f"  [{bar}] {pct:3d}%  原理 {ids_str} を処理中...")
+
+
+def print_results(evaluation: dict, original_idea: str):
+    """結果をフォーマットして表示する。"""
+
+    print("\n" + "═" * 65)
+    print("  📊 TRIZ分析結果 — ビジネス実現性ランキング")
+    print("═" * 65)
+    print(f"  元のアイデア: {original_idea}\n")
+
+    top_ideas = evaluation.get("top_ideas", [])
+
+    for item in top_ideas:
+        scores = item.get("scores", {})
+        total = item.get("total_score", 0)
+        rank = item.get("rank", "?")
+
+        print(f"{'─' * 65}")
+        print(f"  🏆 第{rank}位  [総合スコア: {total}/50点]")
+        print(f"  原理: {item.get('principle_name', '?')}")
+        print()
+
+        idea_text = item.get("idea", "")
+        wrapped = textwrap.fill(idea_text, width=60, initial_indent="  ", subsequent_indent="  ")
+        print(f"  💡 アイデア:")
+        print(wrapped)
+        print()
+
+        print(f"  🎯 対象市場: {item.get('target_market', '?')}")
+        print()
+
+        print("  📈 評価スコア:")
+        score_items = [
+            ("市場規模・成長性", scores.get("market_size", 0)),
+            ("実現容易性",       scores.get("feasibility", 0)),
+            ("収益モデル",       scores.get("revenue_model", 0)),
+            ("競合優位性",       scores.get("competitive_advantage", 0)),
+            ("イノベーション度", scores.get("innovation", 0)),
+        ]
+        for label, score in score_items:
+            bar = "▓" * score + "░" * (10 - score)
+            print(f"    {label:<14} [{bar}] {score}/10")
+        print()
+
+        why = item.get("why_promising", "")
+        if why:
+            wrapped = textwrap.fill(why, width=60, initial_indent="  ", subsequent_indent="  ")
+            print(f"  ✅ 有望な理由:")
+            print(wrapped)
+            print()
+
+        risks = item.get("key_risks", "")
+        if risks:
+            wrapped = textwrap.fill(risks, width=60, initial_indent="  ", subsequent_indent="  ")
+            print(f"  ⚠️  主要リスク:")
+            print(wrapped)
+            print()
+
+        next_steps = item.get("next_steps", "")
+        if next_steps:
+            print(f"  🚀 ネクストアクション:")
+            # 箇条書きの各行をインデント
+            for line in next_steps.split("\n"):
+                line = line.strip()
+                if line:
+                    print(f"     {line}")
+        print()
+
+    print("═" * 65)
+    summary = evaluation.get("summary", "")
+    if summary:
+        print("\n  📝 総合考察:")
+        wrapped = textwrap.fill(summary, width=60, initial_indent="  ", subsequent_indent="  ")
+        print(wrapped)
+    print()
+
+
+def save_results(evaluation: dict, original_idea: str, all_ideas: list[dict], output_file: str):
+    """結果をJSONファイルに保存する。"""
+    output = {
+        "original_idea": original_idea,
+        "all_generated_ideas": all_ideas,
+        "evaluation": evaluation,
+    }
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+    print(f"  💾 全結果を保存しました: {output_file}")
+
+
+def run_triz_agent(
+    idea: str,
+    top_n: int = 5,
+    lang: str = "ja",
+    output_file: Optional[str] = None,
+    verbose: bool = False,
+):
+    """TRIZエージェントのメイン処理。"""
+    print_banner()
+
+    client = create_client()
+
+    print(f"  📌 アイデア: {idea}")
+    print(f"  🔢 適用原理数: {len(TRIZ_PRINCIPLES)}（40原理すべて）")
+    print(f"  🏆 上位表示数: {top_n}件")
+    print()
+
+    # ── フェーズ1: 40原理の適用 ──────────────────────────
+    print("━" * 65)
+    print("  フェーズ 1/2: TRIZ 40原理を適用中...")
+    print("━" * 65)
+
+    all_generated = []
+    batches = [
+        TRIZ_PRINCIPLES[i : i + BATCH_SIZE]
+        for i in range(0, len(TRIZ_PRINCIPLES), BATCH_SIZE)
+    ]
+
+    for i, batch in enumerate(batches):
+        ids = [p["id"] for p in batch]
+        print_progress(i * BATCH_SIZE, len(TRIZ_PRINCIPLES), ids)
+
+        results = apply_principles_batch(client, idea, batch, lang)
+        all_generated.extend(results)
+
+        if verbose:
+            for r in results:
+                print(f"    → 原理{r.get('principle_id')}: {r.get('new_idea', '')[:60]}...")
+
+    print_progress(len(TRIZ_PRINCIPLES), len(TRIZ_PRINCIPLES), [])
+    print(f"\n  ✅ {len(all_generated)}件のアイデアを生成しました。")
+    print()
+
+    # ── フェーズ2: ビジネス実現性評価 ─────────────────────
+    print("━" * 65)
+    print("  フェーズ 2/2: ビジネス実現性を評価中...")
+    print("━" * 65)
+
+    evaluation = evaluate_business_feasibility(client, idea, all_generated, top_n)
+    print(f"  ✅ 評価完了。上位{top_n}件に絞り込みました。")
+    print()
+
+    # ── 結果表示 ──────────────────────────────────────────
+    print_results(evaluation, idea)
+
+    # ── ファイル保存 ───────────────────────────────────────
+    if output_file:
+        save_results(evaluation, idea, all_generated, output_file)
+
+    return evaluation, all_generated
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="TRIZの40発明原理を用いてアイデアを発展させ、ビジネス実現性で絞り込むエージェント",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+使用例:
+  python triz_agent.py
+  python triz_agent.py --idea "遠隔地の医療診断を改善したい"
+  python triz_agent.py --idea "食品ロスを削減したい" --top 3
+  python triz_agent.py --idea "教育格差を解消したい" --output results.json
+        """,
+    )
+    parser.add_argument(
+        "--idea", "-i",
+        type=str,
+        default=None,
+        help="発展させたいアイデアや解決したい課題",
+    )
+    parser.add_argument(
+        "--top", "-t",
+        type=int,
+        default=5,
+        help="表示する上位アイデアの数（デフォルト: 5）",
+    )
+    parser.add_argument(
+        "--lang", "-l",
+        type=str,
+        default="ja",
+        choices=["ja", "en"],
+        help="出力言語（ja: 日本語, en: 英語）",
+    )
+    parser.add_argument(
+        "--output", "-o",
+        type=str,
+        default=None,
+        help="全結果をJSONで保存するファイルパス",
+    )
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="生成中のアイデアを逐次表示する",
+    )
+
+    args = parser.parse_args()
+
+    # インタラクティブ入力
+    if args.idea is None:
+        print_banner()
+        print("  アイデアや解決したい課題を入力してください。")
+        print("  （例: 「高齢者の孤独感を解消したい」「食品廃棄を減らしたい」）")
+        print()
+        idea = input("  > ").strip()
+        if not idea:
+            print("アイデアが入力されていません。終了します。")
+            sys.exit(0)
+        top_n = input(f"  上位何件表示しますか？（デフォルト: {args.top}）: ").strip()
+        top_n = int(top_n) if top_n.isdigit() else args.top
+        save = input("  結果をJSONに保存しますか？(y/N): ").strip().lower()
+        output_file = "triz_results.json" if save == "y" else None
+    else:
+        idea = args.idea
+        top_n = args.top
+        output_file = args.output
+
+    run_triz_agent(
+        idea=idea,
+        top_n=top_n,
+        lang=args.lang,
+        output_file=output_file,
+        verbose=args.verbose,
+    )
+
+
+if __name__ == "__main__":
+    main()
