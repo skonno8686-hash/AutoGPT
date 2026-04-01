@@ -28,7 +28,17 @@ try:
 except ImportError:
     pass
 
-import anthropic
+try:
+    import anthropic as _anthropic_mod
+    HAS_ANTHROPIC = True
+except ImportError:
+    HAS_ANTHROPIC = False
+
+try:
+    import openai as _openai_mod
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
 
 # ────────────────────────────────────────────────
 # 40 TRIZ 発明原理 定義
@@ -282,17 +292,49 @@ TRIZ_PRINCIPLES = [
 BATCH_SIZE = 5  # 1回のAPI呼び出しで処理する原理数
 
 
-def create_client() -> anthropic.Anthropic:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        print("エラー: ANTHROPIC_API_KEY 環境変数が設定されていません。")
-        print("  export ANTHROPIC_API_KEY='your-key-here'")
+def create_client():
+    """利用可能なAPIクライアントを返す（Anthropic優先、OpenAIにフォールバック）"""
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
+    openai_key = os.environ.get("OPENAI_API_KEY")
+
+    if anthropic_key and HAS_ANTHROPIC:
+        client = _anthropic_mod.Anthropic(api_key=anthropic_key)
+        client._provider = "anthropic"
+        print("  🤖 モデル: Claude (Anthropic)")
+        return client
+    elif openai_key and HAS_OPENAI:
+        client = _openai_mod.OpenAI(api_key=openai_key)
+        client._provider = "openai"
+        print("  🤖 モデル: GPT-4o (OpenAI)")
+        return client
+    else:
+        print("エラー: APIキーが設定されていません。")
+        print("  Anthropic: export ANTHROPIC_API_KEY='sk-ant-...'")
+        print("  OpenAI:    export OPENAI_API_KEY='sk-proj-...'")
         sys.exit(1)
-    return anthropic.Anthropic(api_key=api_key)
+
+
+def _call_llm(client, prompt: str) -> str:
+    """プロバイダーに応じてLLMを呼び出す"""
+    provider = getattr(client, "_provider", "openai")
+    if provider == "anthropic":
+        msg = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=4096,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return msg.content[0].text.strip()
+    else:
+        resp = client.chat.completions.create(
+            model="gpt-4o",
+            max_tokens=4096,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return resp.choices[0].message.content.strip()
 
 
 def apply_principles_batch(
-    client: anthropic.Anthropic,
+    client,
     idea: str,
     principles: list[dict],
     lang: str = "ja",
@@ -335,13 +377,7 @@ def apply_principles_batch(
 
 {lang_instruction}。JSONのみ出力してください。"""
 
-    message = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    response_text = message.content[0].text.strip()
+    response_text = _call_llm(client, prompt)
 
     # JSON抽出（```json ブロックが含まれる場合に対応）
     if "```" in response_text:
@@ -358,7 +394,7 @@ def apply_principles_batch(
 
 
 def evaluate_business_feasibility(
-    client: anthropic.Anthropic,
+    client,
     original_idea: str,
     generated_ideas: list[dict],
     top_n: int = 5,
@@ -415,13 +451,7 @@ def evaluate_business_feasibility(
 
 JSONのみ出力してください。"""
 
-    message = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    response_text = message.content[0].text.strip()
+    response_text = _call_llm(client, prompt)
 
     if "```" in response_text:
         start = response_text.find("{")
@@ -512,9 +542,10 @@ def print_results(evaluation: dict, original_idea: str):
         next_steps = item.get("next_steps", "")
         if next_steps:
             print(f"  🚀 ネクストアクション:")
-            # 箇条書きの各行をインデント
-            for line in next_steps.split("\n"):
-                line = line.strip()
+            # リスト形式と文字列形式の両方に対応
+            lines = next_steps if isinstance(next_steps, list) else next_steps.split("\n")
+            for line in lines:
+                line = str(line).strip()
                 if line:
                     print(f"     {line}")
         print()
