@@ -522,6 +522,7 @@ def evaluate_business_feasibility(
     generated_ideas: list[dict],
     top_n: int = 5,
     contradiction_analysis: dict = None,
+    scope_filter: str = "",
 ) -> dict:
     """生成されたアイデアをビジネス実現性の観点で評価・ランキングする（2段階）。"""
 
@@ -537,8 +538,10 @@ def evaluate_business_feasibility(
         for i, item in enumerate(valid_ideas)
     )
 
+    scope_line = f"\n【除外条件】{scope_filter}" if scope_filter else ""
+
     score_prompt = f"""以下のTRIZアイデアリストを5基準（市場規模・実現容易性・収益モデル・競合優位性・イノベーション度）で各10点採点し、上位{top_n}件の原理番号とスコアをJSON出力してください。
-優先加点原理: {priority_ids}
+優先加点原理: {priority_ids}{scope_line}
 
 アイデア一覧:
 {ideas_lines}
@@ -760,6 +763,7 @@ def run_triz_agent(
     lang: str = "ja",
     output_file: Optional[str] = None,
     verbose: bool = False,
+    scope_filter: str = "",
 ):
     """TRIZエージェントのメイン処理。"""
     print_banner()
@@ -827,7 +831,7 @@ def run_triz_agent(
     print("━" * 65)
 
     evaluation = evaluate_business_feasibility(
-        client, idea, all_generated, top_n, contradiction_analysis
+        client, idea, all_generated, top_n, contradiction_analysis, scope_filter
     )
     print(f"  ✅ 評価完了。上位{top_n}件に絞り込みました。")
     print()
@@ -884,6 +888,12 @@ def main():
         action="store_true",
         help="生成中のアイデアを逐次表示する",
     )
+    parser.add_argument(
+        "--scope-filter", "-f",
+        type=str,
+        default="",
+        help="評価から除外する発明カテゴリの説明（例: 'サービス・プラットフォーム・ビジネスモデルは除外し、デバイス技術のみ選出'）",
+    )
 
     args = parser.parse_args()
 
@@ -912,6 +922,7 @@ def main():
         lang=args.lang,
         output_file=output_file,
         verbose=args.verbose,
+        scope_filter=args.scope_filter,
     )
 
 
