@@ -1,0 +1,400 @@
+{
+  "original_idea": "宇宙・深海・火山近傍など超高温・超低温・超高圧・強放射線環境でも安定稼働する次世代エネルギー貯蔵デバイスの開発。既存のリチウムイオン電池では対応できない特殊環境向けに、新材料・新構造を用いた革新的電池を実現する。",
+  "contradiction_analysis": {
+    "problem_essence": "極端な環境条件下でも動作する次世代エネルギー貯蔵デバイスを開発するためには、新材料や構造の採用によって信頼性と性能の両方を向上させる必要がある。",
+    "contradictions": [
+      {
+        "improving_param": 27,
+        "improving_name": "信頼性",
+        "worsening_param": 36,
+        "worsening_name": "装置の複雑さ",
+        "recommended_principles": [
+          26,
+          24,
+          32,
+          28,
+          10,
+          2,
+          1
+        ],
+        "reasoning": "デバイスの信頼性を向上するために新たな技術や構造を導入すると、装置の設計が複雑になる問題が生じる。",
+        "matrix_lookup": [
+          26,
+          24,
+          32,
+          28
+        ]
+      },
+      {
+        "improving_param": 14,
+        "improving_name": "強度",
+        "worsening_param": 17,
+        "worsening_name": "温度",
+        "recommended_principles": [
+          35,
+          3,
+          40
+        ],
+        "reasoning": "デバイスをより強固に作ることで高温や低温の環境に耐えさせると、材料や構造がそれぞれの適応温度範囲から外れるリスクがある。"
+      },
+      {
+        "improving_param": 35,
+        "improving_name": "適応性・汎用性",
+        "worsening_param": 22,
+        "worsening_name": "エネルギーの損失",
+        "recommended_principles": [
+          35,
+          22,
+          18,
+          39,
+          15,
+          34,
+          24
+        ],
+        "reasoning": "デバイスを多様な環境で使用できるよう適応性を高めると、エネルギー効率が悪化する可能性がある。",
+        "matrix_lookup": [
+          35,
+          22,
+          18,
+          39
+        ]
+      }
+    ],
+    "priority_principles": [
+      26,
+      24,
+      32,
+      28,
+      35,
+      22,
+      18,
+      39
+    ]
+  },
+  "all_generated_ideas": [
+    {
+      "principle_id": 18,
+      "principle_name": "機械的振動",
+      "application": "超音波振動を利用してエネルギー貯蔵デバイスの内部構造を最適化し、特殊環境での安定稼働を実現する。",
+      "new_idea": "超音波振動によって内部構造を定期的に再配置することで寿命を延ばすバッテリーの開発。",
+      "target_market": "宇宙探査企業、極地研究機関、深海探査機関",
+      "is_priority": true
+    },
+    {
+      "principle_id": 22,
+      "principle_name": "災い転じて福となす",
+      "application": "放射線や高圧などの有害な環境要因をエネルギー変換プロセスに利用し、デバイス寿命を延ばす。",
+      "new_idea": "放射線を利用した電気エネルギーの直接生成システムを持つバッテリーの構築。",
+      "target_market": "原子力発電所、軍事技術開発機関、宇宙開発企業",
+      "is_priority": true
+    },
+    {
+      "principle_id": 24,
+      "principle_name": "仲介物",
+      "application": "特殊環境向けバッテリーに適した中間物質を導入し、温度や圧力の影響を緩和する。",
+      "new_idea": "特定の中間層を活用して、極端な外部環境からバッテリーを保護するソリューションの提供。",
+      "target_market": "科学探査機関、大規模プロジェクトのエネルギー管理部門",
+      "is_priority": true
+    },
+    {
+      "principle_id": 26,
+      "principle_name": "コピー",
+      "application": "バッテリーの高価な素材部分を廉価で耐久性のあるコピー素材に置き換える。",
+      "new_idea": "コスト削減と耐久性向上を同時に実現する代替素材を使用したバッテリーの販売。",
+      "target_market": "商業航海企業、極地観測隊、長時間ミッションを遂行する宇宙機関",
+      "is_priority": true
+    },
+    {
+      "principle_id": 28,
+      "principle_name": "機械的作用の置換",
+      "application": "バッテリー機能の監視に機械的ではなく電子センサーを活用して、非接触での状態管理を実施。",
+      "new_idea": "非接触型センサーを用いたリアルタイムモニタリング機能付きのバッテリーを開発。",
+      "target_market": "産業機械メーカー、モバイルデバイス開発企業、スポーツエレクトロニクス市場",
+      "is_priority": true
+    },
+    {
+      "principle_id": 32,
+      "principle_name": "色の変化",
+      "application": "超高温や強放射線環境での状況変化を視覚的に示すために、電池の外装に特定の色の変化を加えることができる。",
+      "new_idea": "色が変わるバッテリー外装により、環境の変化や電池の状態を示す新しい電池。",
+      "target_market": "宇宙探査や海洋探査、火山調査などの特殊環境で働く研究者や技術者。",
+      "is_priority": true
+    },
+    {
+      "principle_id": 35,
+      "principle_name": "パラメータの変化",
+      "application": "バッテリー内の温度や圧力などのパラメータを自動的に調整して最適化する機能を持たせる。",
+      "new_idea": "環境に応じて内部パラメータを調整し、最適な性能を発揮するスマートバッテリー。",
+      "target_market": "環境条件が頻繁に変わる業界や、過酷な作業条件のモバイルデバイス。",
+      "is_priority": true
+    },
+    {
+      "principle_id": 39,
+      "principle_name": "不活性雰囲気",
+      "application": "バッテリーを酸化防止のために不活性ガスで封入し、過酷な環境でも劣化しにくい構造にする。",
+      "new_idea": "不活性ガス封入によって長寿命を実現した新素材のバッテリー。",
+      "target_market": "防衛用途や長寿命が求められる深海ケーブル、宇宙衛星の運用企業。",
+      "is_priority": true
+    },
+    {
+      "principle_id": 1,
+      "principle_name": "分割",
+      "application": "電池をモジュール化し、個別の部位が交換可能な構造にする。",
+      "new_idea": "交換可能なモジュール式構造でメンテナンスを容易にしたエネルギー貯蔵デバイス。",
+      "target_market": "メンテナンスが頻繁に行われるハイテク機器や、持続可能性を重視する企業。",
+      "is_priority": false
+    },
+    {
+      "principle_id": 2,
+      "principle_name": "抽出",
+      "application": "電池の中から干渉する不要な機能を分離し、必要な複合材料だけを集約した設計。",
+      "new_idea": "特定の特殊材料を抽出し、パフォーマンスを最大化するために最適化された革新的な電池。",
+      "target_market": "高性能電池が求められる航空宇宙産業や医療分野のメーカー。",
+      "is_priority": false
+    },
+    {
+      "principle_id": 3,
+      "principle_name": "局所的品質",
+      "application": "各環境の要求に応じて電池の特定部分を最適化する。例えば、超高温領域では放熱性を、超低温領域では保温性をカスタマイズする。",
+      "new_idea": "特定の環境条件に特化したモジュラー式電池システムの開発と提供。",
+      "target_market": "宇宙探査機、深海探査機、火山調査機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 4,
+      "principle_name": "非対称",
+      "application": "電池の内部構造を非対称にして、放熱や放電特性を異なる条件で最適化する。",
+      "new_idea": "非対称設計による高効率エネルギー変換を実現する次世代電池の開発。",
+      "target_market": "過酷な環境での科学調査・探査機器メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 5,
+      "principle_name": "統合",
+      "application": "電池セルと管理システムを統合し、それらが同時に動作するように設計する。",
+      "new_idea": "エネルギー貯蔵と管理を一体化した統合電池システムの提供。",
+      "target_market": "宇宙・海洋・環境調査企業および政府機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 6,
+      "principle_name": "多機能化",
+      "application": "電池装置がエネルギー貯蔵以外の機能、例えば自動温度調整を持つようにする。",
+      "new_idea": "発電機能や環境センサーを兼ね備えた多機能バッテリーの開発販売。",
+      "target_market": "多目的探査機器メーカー、環境モニタリング企業",
+      "is_priority": false
+    },
+    {
+      "principle_id": 7,
+      "principle_name": "入れ子構造",
+      "application": "複数の電池セルを入れ子にして配置し、スペース効率を向上させる。",
+      "new_idea": "入れ子構造によるコンパクトな高密度電池パックの開発。",
+      "target_market": "スペースコンストレイントがある探査機・ドローンメーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 8,
+      "principle_name": "釣り合いおもり",
+      "application": "超高圧や強放射線環境での耐久性を向上させるため、重力や放射線をエネルギーに変換して電池を安定させるテクノロジーを構築する。",
+      "new_idea": "環境エネルギーを利用して自己回復機能を持ち、維持管理コストを削減できるエネルギー貯蔵デバイスの開発。",
+      "target_market": "宇宙開発機関、深海探査企業、高温・高圧産業",
+      "is_priority": false
+    },
+    {
+      "principle_id": 9,
+      "principle_name": "事前の反作用",
+      "application": "特殊環境で生じるストレスに対して、事前に反応することで電池の寿命を延ばす材料を組み込む。",
+      "new_idea": "事前に特定環境の条件でシミュレーションした材料構造を組み入れたエネルギー貯蔵デバイス。",
+      "target_market": "災害対策インフラ、軍事技術、深宇宙ミッション",
+      "is_priority": false
+    },
+    {
+      "principle_id": 10,
+      "principle_name": "事前の作用",
+      "application": "電池が設置される環境を模倣した実験環境を構築し、事前に材料や構造の耐性をテストする。",
+      "new_idea": "出荷前にあらゆる条件での耐性テストを完了した信頼性の高いエネルギー貯蔵デバイスを提供。",
+      "target_market": "政府機関、電力インフラ企業、高精度機器メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 11,
+      "principle_name": "事前のクッション",
+      "application": "主要機能が失われた場合に備えて、別の方法でエネルギーを供給するバックアップ機構を用意する。",
+      "new_idea": "多層バックアップが施された多機能エネルギー貯蔵デバイスの販売。",
+      "target_market": "防災設備メーカー、無人遠隔システム開発者、医療機器メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 12,
+      "principle_name": "等ポテンシャル",
+      "application": "エネルギー供給や収集のプロセスを平坦化し、無駄なエネルギー変換を最小化する。",
+      "new_idea": "エネルギー利用を均等化することで、効率を最大化する次世代バッテリーの開発。",
+      "target_market": "スマートシティ運営、エネルギー効率化企業、再生可能エネルギープロジェクト",
+      "is_priority": false
+    },
+    {
+      "principle_id": 13,
+      "principle_name": "逆発想",
+      "application": "エネルギー貯蔵の全体構造を反転させ、外界の過酷な条件を内部利用できる積極的な要素とする。",
+      "new_idea": "宇宙や深海の極限環境下からエネルギーを逆に吸収し、それを内部で安定化して貯蔵、利用する電池の開発。",
+      "target_market": "宇宙開発機関、海洋調査企業、火山研究団体",
+      "is_priority": false
+    },
+    {
+      "principle_id": 14,
+      "principle_name": "曲面化",
+      "application": "電池の内部構造を曲面化し、より均一な熱伝導と圧力分散を実現する。",
+      "new_idea": "曲面化されたモジュールが集まった柔軟な次世代バッテリーシステムの構築。",
+      "target_market": "航空宇宙産業、超深海探査企業",
+      "is_priority": false
+    },
+    {
+      "principle_id": 15,
+      "principle_name": "ダイナミクス",
+      "application": "環境条件に応じて、材料の特性や構造を動的に変更できる電池を設計する。",
+      "new_idea": "使用環境に応じて自身の形状や材料状態を最適化するスマートエネルギー貯蔵装置の開発。",
+      "target_market": "軍事用途、極限環境での科学調査",
+      "is_priority": false
+    },
+    {
+      "principle_id": 16,
+      "principle_name": "過不足作用",
+      "application": "エネルギー貯蔵の効果を100%達成しようとせず、過酷環境での動作を優先し、安全マージンを考慮したデザインを採用する。",
+      "new_idea": "100%性能ではなく、安全性を重視したエネルギー貯蔵デバイスの提供。",
+      "target_market": "深海ロボティクス、火山観測機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 17,
+      "principle_name": "次元移行",
+      "application": "エネルギー貯蔵装置を多層構造として設計し、異なる環境条件に特化した層を持つ。",
+      "new_idea": "各層が異なる機能や特性を持ち、次元によって異なる環境条件に適応するバッテリーモジュール。",
+      "target_market": "宇宙探査チーム、極地探検組織",
+      "is_priority": false
+    },
+    {
+      "principle_id": 19,
+      "principle_name": "周期的作用",
+      "application": "エネルギー貯蔵デバイスの充電・放電を周期的に行い、デバイス内部での熱・圧力の周期的緩和と負担軽減を実現する。",
+      "new_idea": "周期的な充電・放電により環境負荷を減らし、安定運用を可能にするエネルギー貯蔵システム。",
+      "target_market": "宇宙探査機能や深海観測チーム",
+      "is_priority": false
+    },
+    {
+      "principle_id": 20,
+      "principle_name": "有益作用の継続",
+      "application": "材料や構造が絶え間なくエネルギーを管理する仕組みを導入し、外部環境の変化に対応する。",
+      "new_idea": "各コンポーネントが常にフル稼働し続ける次世代エネルギー貯蔵デバイス。",
+      "target_market": "極限環境での研究開発を行う企業や政府機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 21,
+      "principle_name": "高速実行",
+      "application": "デバイスが危険な状態変化に即座に対応するプロセスを取り入れ、危険度を最小化する。",
+      "new_idea": "危険な温度・圧力変化にも高速で対応するエネルギー貯蔵デバイス。",
+      "target_market": "極限環境における緊急対応が必要な産業",
+      "is_priority": false
+    },
+    {
+      "principle_id": 23,
+      "principle_name": "フィードバック",
+      "application": "環境データをリアルタイムでフィードバックし、デバイスの動作最適化を行う。",
+      "new_idea": "リアルタイムフィードバック機能を備えた、高度な自動調整エネルギー貯蔵デバイス。",
+      "target_market": "リアルタイム監視が重要な防衛・宇宙・深海研究機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 25,
+      "principle_name": "セルフサービス",
+      "application": "デバイスが自らの状態を診断し、軽微な修理や調整を自動で行う機能を実装する。",
+      "new_idea": "自己診断と自己修復機能を持つ、高耐久性エネルギー貯蔵デバイス。",
+      "target_market": "長時間メンテナンスが困難な環境で作業する事業者",
+      "is_priority": false
+    },
+    {
+      "principle_id": 27,
+      "principle_name": "安価な短命",
+      "application": "高価で耐久性のあるエネルギー貯蔵デバイスを、特定のミッションや期間限定使用向けに、低コストの使い捨てバッテリーモジュールに置き換える。",
+      "new_idea": "極限環境向けの使い捨てバッテリーをサブスクリプションモデルで提供し、ミッション終了後には環境に配慮したリサイクルを行う。",
+      "target_market": "宇宙探査機関、深海調査会社、火山研究チーム",
+      "is_priority": false
+    },
+    {
+      "principle_id": 29,
+      "principle_name": "空気・水圧",
+      "application": "エネルギー貯蔵デバイスの固体構造の代わりに、液体を充填した柔軟性のある構造を採用することで、圧力の変動に対応させる。",
+      "new_idea": "液体充填タイプのバッテリーを開発し、多様な圧力環境に適応するエネルギーソリューションを提供。",
+      "target_market": "深海調査機関、潜水艦メーカー、高圧環境産業",
+      "is_priority": false
+    },
+    {
+      "principle_id": 30,
+      "principle_name": "柔軟な薄膜・フィルム",
+      "application": "エネルギー貯蔵デバイスを薄膜のカプセルでコーティングし、外部環境から分離することで信頼性を向上させる。",
+      "new_idea": "特殊環境で使用するための、防爆フィルム付きバッテリーケースを提供する。",
+      "target_market": "宇宙・軍事産業、極限環境研究機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 31,
+      "principle_name": "多孔性材料",
+      "application": "バッテリーセルを多孔性材料で構築し、圧力を均等に分散して高圧環境下での安全性を高める。",
+      "new_idea": "多孔性構造を用いた安全性の高い深海・高圧用バッテリー開発を推進する。",
+      "target_market": "深海探査業界、高圧環境機器メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 33,
+      "principle_name": "均質性",
+      "application": "異なる環境で使用されるエネルギー貯蔵デバイスの部材を同一材料で統一し、耐久性とリサイクル効率を向上させる。",
+      "new_idea": "すべての部品が統一規格の次世代バッテリーを開発し、市場投入を目指す。",
+      "target_market": "エネルギーインフラ企業、環境配慮型製造業者",
+      "is_priority": false
+    },
+    {
+      "principle_id": 34,
+      "principle_name": "廃棄と回収",
+      "application": "次世代エネルギー貯蔵デバイスにおいて、使用後の材料を再生し、新たな材料として再利用するプロセスを設ける。",
+      "new_idea": "特殊環境用電池の廃棄後、材料を回収し再生して新たな電池材料として再利用するサービス。",
+      "target_market": "特殊環境での持続可能なエネルギー利用を目指す研究機関や産業分野。",
+      "is_priority": false
+    },
+    {
+      "principle_id": 36,
+      "principle_name": "相変化",
+      "application": "エネルギー貯蔵デバイスが特定の環境で効率的に機能するために相変化を利用する設計を行う。",
+      "new_idea": "相変化を利用してエネルギーを安定的に供給できるバッテリーを開発し、環境応じた自動適応性能を提供する。",
+      "target_market": "宇宙探査・深海開発など異常環境で活動する産業および研究機関。",
+      "is_priority": false
+    },
+    {
+      "principle_id": 37,
+      "principle_name": "熱膨張",
+      "application": "異なる熱膨張係数を持つ素材を組み合わせることで、デバイスの性能を環境に応じて最適化する。",
+      "new_idea": "異種素材による熱膨張を利用し、各温度範囲で最適な拡張・収縮ができるバッテリーを開発。",
+      "target_market": "高温・低温環境を問わずエネルギー貯蔵が必要な産業全般。",
+      "is_priority": false
+    },
+    {
+      "principle_id": 38,
+      "principle_name": "酸化促進",
+      "application": "酸素富化環境での反応を利用して、電池の充放電プロセスを促進し効率を上げる。",
+      "new_idea": "高酸素環境下で動作する高効率バッテリーを開発し、充電時間を短縮する。",
+      "target_market": "高速充電が求められる過酷な環境でのエネルギーソリューションを探している企業。",
+      "is_priority": false
+    },
+    {
+      "principle_id": 40,
+      "principle_name": "複合材料",
+      "application": "異なる材質を組み合わせた複合材料により、環境に強いバッテリーを実現。",
+      "new_idea": "異なる材料特性を持つ複合材料で構成されたバッテリーを開発し、耐用年数と性能を向上する。",
+      "target_market": "耐久性と性能が求められる次世代エネルギー貯蔵ソリューション市場。",
+      "is_priority": false
+    }
+  ],
+  "evaluation": {
+    "top_ideas": [],
+    "summary": "評価中にエラーが発生しました。"
+  }
+}

@@ -1,0 +1,387 @@
+{
+  "original_idea": "宇宙・深海・火山近傍などの極限環境（超高温・超低温・超高圧・強放射線・腐食性ガス）に耐えうる次世代電池の開発。リチウムイオン電池では対応不可能な環境での安定稼働を実現する。",
+  "contradiction_analysis": {
+    "problem_essence": "極限環境でも動作する安定した次世代電池を開発し、耐久性や信頼性を向上させること。",
+    "contradictions": [
+      {
+        "improving_param": 13,
+        "improving_name": "組成の安定性",
+        "worsening_param": 33,
+        "worsening_name": "使いやすさ",
+        "recommended_principles": [
+          1,
+          35,
+          10,
+          28
+        ],
+        "reasoning": "極限環境で組成の安定性を高めると、電池の操作が困難になる可能性がある。"
+      },
+      {
+        "improving_param": 17,
+        "improving_name": "温度",
+        "worsening_param": 27,
+        "worsening_name": "信頼性",
+        "recommended_principles": [
+          2,
+          39,
+          19,
+          24
+        ],
+        "reasoning": "異常な温度に耐えられるようにすると、全体の信頼性が低下する可能性がある。"
+      },
+      {
+        "improving_param": 14,
+        "improving_name": "強度",
+        "worsening_param": 36,
+        "worsening_name": "装置の複雑さ",
+        "recommended_principles": [
+          15,
+          32,
+          3,
+          9
+        ],
+        "reasoning": "構造的な強度を高めると、装置の複雑さが増す可能性がある。"
+      }
+    ],
+    "priority_principles": [
+      1,
+      2,
+      15,
+      35,
+      32,
+      39,
+      10,
+      3,
+      28,
+      19,
+      24,
+      9
+    ]
+  },
+  "all_generated_ideas": [
+    {
+      "principle_id": 1,
+      "principle_name": "分割",
+      "application": "次世代電池の各コンポーネントをモジュール化し、各パーツが異なる極限環境に特化して最適化されるようにする。",
+      "new_idea": "異なる環境に応じて交換可能なパーツを提供するモジュール式電池システム。",
+      "target_market": "宇宙開発機関、深海探査企業、火山研究機関",
+      "is_priority": true
+    },
+    {
+      "principle_id": 2,
+      "principle_name": "抽出",
+      "application": "極限環境で優先される特性（耐熱・耐圧・耐放射線性など）に特化した素材を使用し、それ以外の干渉する特性を排除する設計を採用する。",
+      "new_idea": "特定の環境要求に特化したカスタム電池素材の提供。",
+      "target_market": "材料研究施設、高性能素材メーカー、特殊用途機器メーカー",
+      "is_priority": true
+    },
+    {
+      "principle_id": 3,
+      "principle_name": "局所的品質",
+      "application": "電池の各部位で異なる材料やデザインを採用し、例えば外部は耐熱素材、内部は耐酸化性素材を使うことで全体の性能を最適化する。",
+      "new_idea": "環境に応じた適応性を持つハイブリッド構造の電池。",
+      "target_market": "軍事産業、航空宇宙産業、深海探査組織",
+      "is_priority": true
+    },
+    {
+      "principle_id": 9,
+      "principle_name": "事前の反作用",
+      "application": "事前に極端な環境条件を模倣した試験場で電池を使用し、耐久性や性能を高める方法を事前に調整する。",
+      "new_idea": "極限環境試験サービスと電池の耐久性強化コンサルティングサービスの提供。",
+      "target_market": "電池メーカー、宇宙開発企業、耐久性試験機関",
+      "is_priority": true
+    },
+    {
+      "principle_id": 10,
+      "principle_name": "事前の作用",
+      "application": "使用される極限環境に電池を事前に適応させ、予想される環境ストレスに対処するためにプリセットされた特性を持つ電池を設計する。",
+      "new_idea": "使用環境に応じて事前にカスタマイズされたプリセット電池の納品サービス。",
+      "target_market": "特殊用途装置メーカー、宇宙探査機器開発者、化学プラント",
+      "is_priority": true
+    },
+    {
+      "principle_id": 15,
+      "principle_name": "ダイナミクス",
+      "application": "電池が各環境の変化に応じて容量や放電特性を自動的に調整できるようにする。",
+      "new_idea": "動的に特性を変える次世代電池を開発し、極限環境下での用途に応じたパフォーマンスを提供。",
+      "target_market": "宇宙開発企業、海洋調査機関、火山探査チーム",
+      "is_priority": true
+    },
+    {
+      "principle_id": 19,
+      "principle_name": "周期的作用",
+      "application": "電池のエネルギー出力を周期的に調整し、エネルギー消費を最適化するシステムを導入。",
+      "new_idea": "周期的に放電特性を変えることで極限環境下でのバッテリー効率を向上させるソリューションを提供。",
+      "target_market": "長期間稼働を必要とする深海探査装置、宇宙ステーション",
+      "is_priority": true
+    },
+    {
+      "principle_id": 24,
+      "principle_name": "仲介物",
+      "application": "電池と外部環境をつなぐ中間素材を導入し、安全なエネルギー供給を実現する。",
+      "new_idea": "環境とバッテリーの間に安全な中間層を設けることで、過酷な条件下でも安定した出力が可能なバッテリーソリューションを開発。",
+      "target_market": "軍事用設備、極限作業環境用の産業機器メーカー",
+      "is_priority": true
+    },
+    {
+      "principle_id": 28,
+      "principle_name": "機械的作用の置換",
+      "application": "機械的要素をセンサーに置き換え、極限環境の変化をリアルタイムでモニタリングする。",
+      "new_idea": "バッテリー内に組み込まれた電子センサーにより、外部環境の変化に応じた電圧や温度管理を可能にするシステムを提供。",
+      "target_market": "宇宙探査機メーカー、科学研究機関",
+      "is_priority": true
+    },
+    {
+      "principle_id": 32,
+      "principle_name": "色の変化",
+      "application": "電池表面に色変化を促す素材を使用し、状態変化を視覚的に確認可能にする。",
+      "new_idea": "バッテリーの状態変化を色の変化で表示することで、視覚的に安全性を確認できるバッテリーモニタリング技術を提供。",
+      "target_market": "現場作業者、極限環境に関わるエンジニア",
+      "is_priority": true
+    },
+    {
+      "principle_id": 35,
+      "principle_name": "パラメータの変化",
+      "application": "次世代電池の材料を、極限環境に特化した特性に合わせてカスタマイズし、異なる環境で最適に機能するように調整する。",
+      "new_idea": "環境に応じて素材の組成や構造をリアルタイムで変更できるスマート電池を提供する。",
+      "target_market": "宇宙開発企業、深海探査企業、火山研究団体",
+      "is_priority": true
+    },
+    {
+      "principle_id": 39,
+      "principle_name": "不活性雰囲気",
+      "application": "電池の動作環境を不活性ガスや真空に切り替えることで、過酷な条件から電池を保護するシステムを設計する。",
+      "new_idea": "電池の外部に不活性雰囲気を形成し、環境からの影響を最小化する保護カプセルを開発する。",
+      "target_market": "化学プロセス企業、放射線研究施設",
+      "is_priority": true
+    },
+    {
+      "principle_id": 4,
+      "principle_name": "非対称",
+      "application": "電池の内部構造や外形に非対称設計を取り入れ、特定方向からの熱や圧力への強度を向上させる。",
+      "new_idea": "特定の方向に対する耐久性を強化した非対称設計の電池モジュールを販売する。",
+      "target_market": "建設業界、軍事用装備メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 5,
+      "principle_name": "統合",
+      "application": "電池システムと制御・監視システムを一体化させ、効率的なエネルギー管理を実現する。",
+      "new_idea": "電池と制御センサーを統合し、リアルタイムでの電力消費最適化が可能な次世代バッテリーソリューションを提供する。",
+      "target_market": "ロボティクス企業、無人探査機メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 6,
+      "principle_name": "多機能化",
+      "application": "電池をエネルギー供給だけでなく、センサーや通信デバイスとしての機能も持たせることで、多用途化を図る。",
+      "new_idea": "電池自体がデータの収集と通信が可能な多機能デバイスとして機能するソリューションを提供する。",
+      "target_market": "IoT機器メーカー、防災機器企業",
+      "is_priority": false
+    },
+    {
+      "principle_id": 7,
+      "principle_name": "入れ子構造",
+      "application": "次世代電池の個々のセルを耐性の高い素材で作られたカプセルに入れ子状に配置することで、極限環境からの保護を強化する。",
+      "new_idea": "極限環境での使用を想定した電池モジュールを、耐久カプセルで構成し、従来の電池よりも小型化したパッケージを提供。",
+      "target_market": "宇宙探査機メーカー、海底研究機関、火山調査団体",
+      "is_priority": false
+    },
+    {
+      "principle_id": 8,
+      "principle_name": "釣り合いおもり",
+      "application": "極限環境で発生する有害な圧力や温度変動を、別の途上で発生するエネルギーを利用して相殺する設計を採用する。",
+      "new_idea": "極限環境の温度差を利用して電力を生成し、電池の自己充電を実現する仕組みを提案。",
+      "target_market": "極地探査チーム、軍事用ドローン技術開発会社",
+      "is_priority": false
+    },
+    {
+      "principle_id": 11,
+      "principle_name": "事前のクッション",
+      "application": "電池の各モジュールに異常が発生した場合でも他のモジュールがバックアップできる冗長設計を採用する。",
+      "new_idea": "モジュール冗長性を備えた次世代電池を開発し、極限環境でも信頼性の高い電力供給を提供。",
+      "target_market": "航空宇宙産業、深海機器メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 12,
+      "principle_name": "等ポテンシャル",
+      "application": "環境の変動を均等化する構造を設け、温度や圧力の変動に対してフラットな状態を保つ設計を行う。",
+      "new_idea": "自己調整レギュレーターによって電池の作動条件を一定に維持する環境対応型電池を実現。",
+      "target_market": "高精度観測機器メーカー、長期宇宙ミッションプランナー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 13,
+      "principle_name": "逆発想",
+      "application": "電池を固定することが通常の設計だが、敢えて電池自体を運動させて周辺環境からの影響を分散する設計を検討する。",
+      "new_idea": "動的に位置を変えることで環境からの影響を最小限に抑える自己駆動型電池ユニットを提供。",
+      "target_market": "移動型探査ロボット製造会社、災害救助隊用機器メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 14,
+      "principle_name": "曲面化",
+      "application": "次世代電池の形状を直線的ではなく、曲面・球体の形状にして、過酷な環境下での機械的ストレスを軽減。",
+      "new_idea": "球形の次世代電池を開発し、極限環境の中での安定したエネルギー供給を可能にする。",
+      "target_market": "宇宙開発機関、深海探査機メーカー、火山探査プロジェクト",
+      "is_priority": false
+    },
+    {
+      "principle_id": 16,
+      "principle_name": "過不足作用",
+      "application": "既存の極限環境電池と異なり、過剰なエネルギー貯蔵を意図的に導入し、不完全燃焼を利用した発熱対策を実現。",
+      "new_idea": "過剰エネルギーで熱を生成し、極寒環境でも電池がスムーズに稼働する設計を提供。",
+      "target_market": "寒冷地での使用が必要な気象観測施設、極地探査チーム",
+      "is_priority": false
+    },
+    {
+      "principle_id": 17,
+      "principle_name": "次元移行",
+      "application": "電池の構造を多層構造にし、それぞれの層で異なる耐性を持たせて、環境条件に応じた最適化を可能にする。",
+      "new_idea": "多層構造の電池を用いた製品で、環境に応じた自動適応機能を備えたエネルギーソリューションを提供。",
+      "target_market": "軍事用途、地質調査企業、石油採掘業者",
+      "is_priority": false
+    },
+    {
+      "principle_id": 18,
+      "principle_name": "機械的振動",
+      "application": "バッテリーの運転中に微細な振動を加えることで、電極の劣化を防ぎ、長期間安定した性能を維持。",
+      "new_idea": "振動機能付き次世代電池により、極限環境でも長期間劣化しない電源ユニットを販売。",
+      "target_market": "宇宙産業、海底探査器メーカー、軍事用機器メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 20,
+      "principle_name": "有益作用の継続",
+      "application": "電池の全てのセルが常に最大効率で動作するよう、セル間で効率的にエネルギーを再配分。",
+      "new_idea": "常にフル稼働する電池システムを提供し、極限環境のセンサーや機械に安定した電力を供給。",
+      "target_market": "気象局、地質調査組織、遠隔観測ステーション",
+      "is_priority": false
+    },
+    {
+      "principle_id": 21,
+      "principle_name": "高速実行",
+      "application": "電池の放電プロセスを超高速で行い、短時間で高いエネルギー供給を実現する。",
+      "new_idea": "超高温環境での短期ミッション用に、高速放電可能な電池を提供する、エネルギーブーストサービス。",
+      "target_market": "宇宙探査機関や科学調査プロジェクト",
+      "is_priority": false
+    },
+    {
+      "principle_id": 22,
+      "principle_name": "災い転じて福となす",
+      "application": "極限環境の特性を利用して、電池の効率を向上させる技術を開発する。",
+      "new_idea": "強放射線を利用して、自己充電する次世代電池を開発し、深宇宙探査での使用を提案する。",
+      "target_market": "宇宙開発企業や宇宙機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 23,
+      "principle_name": "フィードバック",
+      "application": "電池の性能をリアルタイムで監視し、環境に応じた最適な動作を自動調整するシステムを導入。",
+      "new_idea": "極限環境下での電池パフォーマンスをリアルタイムで最適化するモニタリングシステム付きバッテリーパック。",
+      "target_market": "軍事・防衛産業や極地探査の研究機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 25,
+      "principle_name": "セルフサービス",
+      "application": "バッテリーが自らの故障を検出し、修復する機能を組み込む。",
+      "new_idea": "自己修復機能を持ち、極限環境での長期運用を可能にするスマートバッテリー。",
+      "target_market": "石油・ガス産業や防災機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 26,
+      "principle_name": "コピー",
+      "application": "極限環境用バッテリーのシミュレーションによる仮想モデルを開発し、安全性や性能を低コストで事前に評価する。",
+      "new_idea": "次世代電池の性能を検証するための仮想シミュレーションソフトウェアを提供。",
+      "target_market": "電池メーカーや研究開発機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 27,
+      "principle_name": "安価な短命",
+      "application": "高価で耐久性のある次世代電池を、より安価で短命な一回使用可能な電池の集合体に置き換えることで、必要な環境での短期間の稼働を実現する。",
+      "new_idea": "極限環境での短期的な探査・観測ミッション向けの、使い捨て次世代電池を提供するサブスクリプションサービス。",
+      "target_market": "宇宙探査機関、科学研究機関、石油・ガス産業の地質調査部門",
+      "is_priority": false
+    },
+    {
+      "principle_id": 29,
+      "principle_name": "空気・水圧",
+      "application": "電池の一部に気体や液体を使用し、極端な温度や圧力に対する柔軟性と適応性を持たせる。",
+      "new_idea": "内部が液体で満たされたカスタマイズ可能な次世代電池を提供し、環境に合わせて形状や圧力を変化させることができるバッテリーシステム。",
+      "target_market": "深海探査企業、火山モニタリング機関、軍事用途の技術開発部門",
+      "is_priority": false
+    },
+    {
+      "principle_id": 30,
+      "principle_name": "柔軟な薄膜・フィルム",
+      "application": "極限環境から電池を保護するために耐久性のある薄膜・フィルムで電池を覆う。",
+      "new_idea": "次世代電池を高耐久性の薄膜で覆い、腐食性ガスや放射線から保護するコーテッドバッテリーの販売。",
+      "target_market": "宇宙関連企業、国家機関、特殊環境下での産業オペレーションを行う企業",
+      "is_priority": false
+    },
+    {
+      "principle_id": 31,
+      "principle_name": "多孔性材料",
+      "application": "電池の材料を多孔性にし、その孔を腐食防止や耐放射線の物質で充填する。",
+      "new_idea": "多孔性素材を活用した次世代電池で、腐食防止や高放射線環境での耐性を向上させる製品。",
+      "target_market": "放射環境下で動作する機械メーカー、医療機器メーカー",
+      "is_priority": false
+    },
+    {
+      "principle_id": 33,
+      "principle_name": "均質性",
+      "application": "電池と接触する構造や装置を同じ材料で製作することで、相互作用を最適化する。",
+      "new_idea": "次世代電池とそれを使用するデバイスを同一材料で作り、耐久性と効率を引き上げる統合バッテリーシステム。",
+      "target_market": "宇宙産業、大型工業用機械メーカー、軍事技術開発市場",
+      "is_priority": false
+    },
+    {
+      "principle_id": 34,
+      "principle_name": "廃棄と回収",
+      "application": "使用済みの電池を再利用するための再生システムを開発し、極限環境用に最適化された材料を循環的に使用する。",
+      "new_idea": "極限環境で劣化した電池材料を回収し、リサイクルして新たな電池の材料として再利用するサービス。",
+      "target_market": "宇宙探査機メーカー、深海探査機運用会社、火山調査機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 36,
+      "principle_name": "相変化",
+      "application": "極限環境内での温度差による相変化を利用して電池の効率を高める仕組みを構築する。",
+      "new_idea": "相変化を利用してエネルギー出力を最適化する、次世代用の温度応答型電池の開発。",
+      "target_market": "宇宙産業、極地探検、深海技術者",
+      "is_priority": false
+    },
+    {
+      "principle_id": 37,
+      "principle_name": "熱膨張",
+      "application": "異なる熱膨張係数を持つ材料を組み合わせ、環境の温度変化に適応する電池を設計する。",
+      "new_idea": "熱エネルギーを活用し、自動的に充電効率を調整できるスマート電池の提供。",
+      "target_market": "極限環境で働く専門家、軍事用途、科学研究機関",
+      "is_priority": false
+    },
+    {
+      "principle_id": 38,
+      "principle_name": "酸化促進",
+      "application": "酸化剤を使用して、極限環境でのエネルギー変換効率を高める電池を開発する。",
+      "new_idea": "強化された酸化反応を利用して、高放射線環境でも長時間稼働可能なバッテリーを提供。",
+      "target_market": "原子力施設、宇宙船開発企業、放射線研究施設",
+      "is_priority": false
+    },
+    {
+      "principle_id": 40,
+      "principle_name": "複合材料",
+      "application": "複数の材料を組み合わせ、特異的な極限環境に最も適した電池を開発する。",
+      "new_idea": "異種素材を組み合わせたカスタマイズ可能な電池ソリューションを提供し、特殊な環境に対応する。",
+      "target_market": "カスタム機器メーカー、環境特化型工業アプリケーション、研究機関",
+      "is_priority": false
+    }
+  ],
+  "evaluation": {
+    "top_ideas": [],
+    "summary": "評価中にエラーが発生しました。"
+  }
+}

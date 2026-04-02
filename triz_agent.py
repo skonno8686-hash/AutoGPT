@@ -321,23 +321,24 @@ def create_client():
         sys.exit(1)
 
 
-def _call_llm(client, prompt: str) -> str:
+def _call_llm(client, prompt: str, max_tokens: int = 4096) -> str:
     """プロバイダーに応じてLLMを呼び出す"""
     provider = getattr(client, "_provider", "openai")
     if provider == "anthropic":
         msg = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=4096,
+            max_tokens=max_tokens,
             messages=[{"role": "user", "content": prompt}],
         )
-        return msg.content[0].text.strip()
+        return (msg.content[0].text or "").strip()
     else:
         resp = client.chat.completions.create(
             model="gpt-4o",
-            max_tokens=4096,
+            max_tokens=max_tokens,
             messages=[{"role": "user", "content": prompt}],
         )
-        return resp.choices[0].message.content.strip()
+        content = resp.choices[0].message.content or ""
+        return content.strip()
 
 
 def analyze_contradictions(client, idea: str) -> dict:
@@ -521,91 +522,95 @@ def evaluate_business_feasibility(
     generated_ideas: list[dict],
     top_n: int = 5,
     contradiction_analysis: dict = None,
-) -> list[dict]:
-    """生成されたアイデアをビジネス実現性の観点で評価・ランキングする。"""
+) -> dict:
+    """生成されたアイデアをビジネス実現性の観点で評価・ランキングする（2段階）。"""
 
-    ideas_text = "\n\n".join(
-        f"[原理{item['principle_id']}: {item['principle_name']}]\n"
-        f"アイデア: {item['new_idea']}\n"
-        f"市場: {item['target_market']}"
-        for item in generated_ideas
-        if item.get("new_idea")
+    valid_ideas = [item for item in generated_ideas if item.get("new_idea")]
+
+    # ── ステップ1: スコアリングのみ（短いプロンプト） ─────
+    priority_ids = []
+    if contradiction_analysis and contradiction_analysis.get("priority_principles"):
+        priority_ids = contradiction_analysis["priority_principles"][:8]
+
+    ideas_lines = "\n".join(
+        f"{i+1}. [原理{item['principle_id']}:{item['principle_name']}] {item['new_idea']} (市場:{item['target_market']})"
+        for i, item in enumerate(valid_ideas)
     )
 
-    # 矛盾マトリックス情報を評価プロンプトに追加
-    contradiction_context = ""
-    if contradiction_analysis and contradiction_analysis.get("contradictions"):
-        essence = contradiction_analysis.get("problem_essence", "")
-        priority = contradiction_analysis.get("priority_principles", [])
-        contradiction_context = f"""
-## 矛盾マトリックス分析結果（評価に考慮すること）
-問題の本質: {essence}
-矛盾マトリックスが推奨する優先発明原理: {priority}
-これらの原理から生成されたアイデアは、技術的矛盾の解決に直結するため、評価において加点的に考慮してください。
-"""
+    score_prompt = f"""以下のTRIZアイデアリストを5基準（市場規模・実現容易性・収益モデル・競合優位性・イノベーション度）で各10点採点し、上位{top_n}件の原理番号とスコアをJSON出力してください。
+優先加点原理: {priority_ids}
 
-    prompt = f"""あなたは事業開発・技術経営・スタートアップ投資の世界的専門家であり、TRIZ発明手法の上級実践者でもあります。
-以下のアイデアリストを、ビジネス実現性・技術的矛盾解決・市場インパクトの観点で深く分析・評価してください。
-{contradiction_context}
-## オリジナルアイデア
-{original_idea}
+アイデア一覧:
+{ideas_lines}
 
-## 評価対象アイデア（TRIZで生成）
-{ideas_text}
+出力形式（JSONのみ）:
+{{"ranked": [{{"rank":1,"principle_id":番号,"principle_name":"名前","idea":"内容","target_market":"市場","scores":{{"market_size":点,"feasibility":点,"revenue_model":点,"competitive_advantage":点,"innovation":点}},"total_score":合計}}]}}"""
 
-## 評価基準（各10点満点）
-1. **市場規模・成長性**: TAM/SAM/SOMの規模、CAGR、将来の市場トレンド
-2. **実現容易性**: 技術成熟度（TRL）、資金調達難易度、規制・特許リスク
-3. **収益モデル明確性**: マネタイズ手法の多様性、LTV/CAC比、サブスクリプション/ライセンス/従量課金等
-4. **競合優位性**: 差別化要因、ネットワーク効果、スイッチングコスト、参入障壁の高さ
-5. **イノベーション度**: 技術的破壊性、既存ソリューションからの乖離度、特許取得可能性
-
-上位{top_n}件を選び、各アイデアについて**500〜1000字相当の詳細評価**を行ってください。
-以下のJSON形式で出力してください：
-{{
-  "top_ideas": [
-    {{
-      "rank": 1,
-      "principle_id": <原理番号>,
-      "principle_name": "<原理名>",
-      "idea": "<アイデア内容（2〜3文）>",
-      "target_market": "<対象市場（具体的な業界・セグメント）>",
-      "scores": {{
-        "market_size": <点数>,
-        "feasibility": <点数>,
-        "revenue_model": <点数>,
-        "competitive_advantage": <点数>,
-        "innovation": <点数>
-      }},
-      "total_score": <合計点数>,
-      "current_problems": "<現状の課題と問題点：現行ソリューションの技術的・ビジネス的限界、業界が直面している構造的問題、ユーザーが我慢している痛点を、業界専門用語を用いて詳述する。150〜200字>",
-      "how_it_solves": "<本アイデアによる解決メカニズム：TRIZの発明原理がどのように技術的矛盾を解消し、現状課題を克服するか。物理的・化学的・情報的なメカニズムを含めて具体的に説明する。150〜200字>",
-      "existing_comparison": "<既存事例との比較：現在市場に存在する類似製品・サービス（具体的な企業名・製品名を挙げて）と本アイデアを比較し、何がどう優れているかを定量的・定性的に示す。150〜200字>",
-      "target_persona": "<ターゲットペルソナ：具体的な利用者像（役職・年齢・業種・抱える課題・意思決定プロセス）と、どのような環境・シーン・文脈でこの製品・サービスを使うかを詳述する。150〜200字>",
-      "concrete_companies": "<具体的な想定顧客企業・導入シナリオ：実在する企業名または類似企業を3〜5社挙げ、各社がどのようなユースケースでこのソリューションを導入するかを具体的に記述する。150〜200字>",
-      "why_promising": "<有望な理由（深層分析）：市場タイミング、技術トレンド、規制動向、地政学的要因なども含めた多角的な視点から、なぜ今このアイデアが有望かを論じる。150〜200字>",
-      "key_risks": "<主要リスクと対策：技術リスク・市場リスク・競合リスク・規制リスクを項目別に整理し、各リスクに対する具体的なミティゲーション戦略を記述する。150〜200字>",
-      "next_steps": ["<ネクストアクション1（誰が・何を・いつまでに）>", "<ネクストアクション2>", "<ネクストアクション3>", "<ネクストアクション4>", "<ネクストアクション5>"]
-    }}
-  ],
-  "summary": "<総合考察：全アイデアを俯瞰したポートフォリオ分析、推奨する優先順位とその根拠、業界全体への影響、中長期的な技術ロードマップの方向性を含む深い考察。300〜500字>"
-}}
-
-各フィールドは指定字数を守り、業界専門用語・定量データ・固有名詞を積極的に使用してください。JSONのみ出力してください。"""
-
-    response_text = _call_llm(client, prompt)
-
-    if "```" in response_text:
-        start = response_text.find("{")
-        end = response_text.rfind("}") + 1
-        response_text = response_text[start:end]
+    score_text = _call_llm(client, score_prompt, max_tokens=4000)
+    start = score_text.find("{")
+    end = score_text.rfind("}") + 1
+    if start != -1 and end > start:
+        score_text = score_text[start:end]
 
     try:
-        data = json.loads(response_text)
-        return data
-    except json.JSONDecodeError as e:
-        print(f"  [警告] 評価JSON解析エラー: {e}")
+        scored = json.loads(score_text)
+        top_candidates = scored.get("ranked", [])[:top_n]
+    except json.JSONDecodeError:
+        top_candidates = valid_ideas[:top_n]
+
+    if not top_candidates:
         return {"top_ideas": [], "summary": "評価中にエラーが発生しました。"}
+
+    # ── ステップ2: 上位N件のみ詳細分析 ──────────────────
+    top_ideas_result = []
+    for candidate in top_candidates:
+        pid = candidate.get("principle_id", 0)
+        pname = candidate.get("principle_name", "")
+        idea_text = candidate.get("idea") or candidate.get("new_idea", "")
+        market = candidate.get("target_market", "")
+        scores = candidate.get("scores", {})
+        total = candidate.get("total_score", sum(scores.values()))
+
+        detail_prompt = f"""以下の発明アイデアについて、事業開発・技術経営の専門家として詳細評価を行いJSONで返してください。
+
+テーマ: {original_idea}
+発明原理: 原理{pid} {pname}
+アイデア: {idea_text}
+対象市場: {market}
+
+以下のJSON形式で出力（各フィールド300〜500字、固有名詞・専門用語・定量データを積極使用）:
+{{"current_problems":"<現状課題と業界限界300-500字>","how_it_solves":"<本アイデアの解決メカニズム300-500字>","existing_comparison":"<既存事例との比較（企業名含む）300-500字>","target_persona":"<ターゲットペルソナと利用シーン300-500字>","concrete_companies":"<想定顧客企業3-5社と導入シナリオ300-500字>","why_promising":"<有望な理由（市場・技術・規制トレンド）300-500字>","key_risks":"<主要リスクと対策300-500字>","next_steps":["誰が何をいつまでに1","2","3","4","5"],"summary":"<この案の総括200字>"}}
+
+JSONのみ出力してください。"""
+
+        detail_text = _call_llm(client, detail_prompt, max_tokens=6000)
+        d_start = detail_text.find("{")
+        d_end = detail_text.rfind("}") + 1
+        if d_start != -1 and d_end > d_start:
+            detail_text = detail_text[d_start:d_end]
+
+        try:
+            detail = json.loads(detail_text)
+        except json.JSONDecodeError:
+            detail = {}
+
+        top_ideas_result.append({
+            "rank": candidate.get("rank", len(top_ideas_result) + 1),
+            "principle_id": pid,
+            "principle_name": pname,
+            "idea": idea_text,
+            "target_market": market,
+            "scores": scores,
+            "total_score": total,
+            **detail,
+        })
+
+    # ── ステップ3: 総合考察 ───────────────────────────────
+    names = "、".join(f"原理{t['principle_id']}:{t['principle_name']}" for t in top_ideas_result)
+    summary_prompt = f"""テーマ「{original_idea}」のTRIZ分析で上位に選ばれたアイデア（{names}）について、ポートフォリオ分析・推奨優先順位・業界への影響・中長期ロードマップを300〜500字で総括してください。テキストのみ出力。"""
+    summary = _call_llm(client, summary_prompt, max_tokens=1000)
+
+    return {"top_ideas": top_ideas_result, "summary": summary}
 
 
 def print_banner():
