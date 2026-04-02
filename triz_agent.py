@@ -40,6 +40,13 @@ try:
 except ImportError:
     HAS_OPENAI = False
 
+# 矛盾マトリックスを読み込む
+try:
+    from triz_matrix import PARAMETERS, lookup, get_param_name, describe_contradiction
+    HAS_MATRIX = True
+except ImportError:
+    HAS_MATRIX = False
+
 # ────────────────────────────────────────────────
 # 40 TRIZ 発明原理 定義
 # ────────────────────────────────────────────────
@@ -333,6 +340,121 @@ def _call_llm(client, prompt: str) -> str:
         return resp.choices[0].message.content.strip()
 
 
+def analyze_contradictions(client, idea: str) -> dict:
+    """
+    Phase 0: アイデアの本質的矛盾を同定し、矛盾マトリックスから
+    優先すべき発明原理を特定する。
+    """
+    if not HAS_MATRIX:
+        return {"contradictions": [], "priority_principles": [], "problem_essence": ""}
+
+    params_text = "\n".join(
+        f"  {pid}: {info['ja']} ({info['en']})"
+        for pid, info in PARAMETERS.items()
+    )
+
+    prompt = f"""あなたはTRIZ（発明的問題解決理論）の世界的専門家です。
+
+## 分析対象のアイデア・課題
+{idea}
+
+## タスク
+このアイデアが取り組む問題の**技術的矛盾**（または物理的矛盾）を特定し、
+Altshullerの39工学パラメータにマッピングしてください。
+
+## Altshullerの39工学パラメータ
+{params_text}
+
+## 指示
+1. このアイデアの問題の本質（技術システムとして何を改善しようとしているか）を簡潔に述べる
+2. 主要な技術的矛盾を最大3つ特定する
+   - 改善しようとしているパラメータ（improving）
+   - それによって悪化するパラメータ（worsening）
+3. 各矛盾についてTRIZ矛盾マトリックスを参照し、推奨発明原理を特定する
+4. 全矛盾を通じて最優先で適用すべき発明原理をまとめる
+
+必ず以下のJSON形式のみで出力してください（マークダウン不要）:
+{{
+  "problem_essence": "問題の本質（1〜2文）",
+  "contradictions": [
+    {{
+      "improving_param": <1-39の整数>,
+      "improving_name": "<パラメータ名（日本語）>",
+      "worsening_param": <1-39の整数>,
+      "worsening_name": "<パラメータ名（日本語）>",
+      "recommended_principles": [<原理番号リスト>],
+      "reasoning": "<この矛盾が発生する理由（1文）>"
+    }}
+  ],
+  "priority_principles": [<全矛盾を通じた優先原理番号リスト（重複なし、重要度順）>]
+}}"""
+
+    raw = _call_llm(client, prompt)
+    if "```" in raw:
+        start = raw.find("{")
+        end = raw.rfind("}") + 1
+        raw = raw[start:end]
+
+    try:
+        result = json.loads(raw)
+        # マトリックスで実際のルックアップを行い、LLMの回答を補正・補強する
+        for c in result.get("contradictions", []):
+            imp = c.get("improving_param", 0)
+            wor = c.get("worsening_param", 0)
+            if 1 <= imp <= 39 and 1 <= wor <= 39:
+                matrix_principles = lookup(imp, wor)
+                if matrix_principles:
+                    # LLMの推奨とマトリックスの推奨をマージ（マトリックス優先）
+                    llm_principles = c.get("recommended_principles", [])
+                    merged = matrix_principles + [p for p in llm_principles if p not in matrix_principles]
+                    c["recommended_principles"] = merged
+                    c["matrix_lookup"] = matrix_principles
+        # priority_principles も再構築
+        all_matrix = []
+        for c in result.get("contradictions", []):
+            all_matrix.extend(c.get("matrix_lookup", []))
+        if all_matrix:
+            # 出現頻度順に並べる
+            from collections import Counter
+            freq = Counter(all_matrix)
+            result["priority_principles"] = [p for p, _ in freq.most_common()]
+        return result
+    except (json.JSONDecodeError, Exception):
+        return {"contradictions": [], "priority_principles": [], "problem_essence": ""}
+
+
+def print_contradiction_analysis(analysis: dict):
+    """矛盾分析結果を表示する"""
+    if not analysis.get("contradictions"):
+        return
+    print()
+    print("  ┌─────────────────────────────────────────────────────────┐")
+    print("  │  🔬 矛盾マトリックス分析                                │")
+    print("  └─────────────────────────────────────────────────────────┘")
+    essence = analysis.get("problem_essence", "")
+    if essence:
+        wrapped = textwrap.fill(essence, width=58, initial_indent="  ", subsequent_indent="  ")
+        print(f"  問題の本質: {wrapped.strip()}")
+        print()
+    for i, c in enumerate(analysis.get("contradictions", []), 1):
+        imp = c.get("improving_name", "")
+        wor = c.get("worsening_name", "")
+        principles = c.get("recommended_principles", [])
+        matrix_p = c.get("matrix_lookup", [])
+        print(f"  矛盾 {i}: 【{imp}↑】 vs 【{wor}↓】")
+        if matrix_p:
+            print(f"    マトリックス推奨原理: {matrix_p}")
+        print(f"    推奨原理（統合）   : {principles}")
+        reason = c.get("reasoning", "")
+        if reason:
+            print(f"    理由: {reason}")
+        print()
+    priority = analysis.get("priority_principles", [])
+    if priority:
+        print(f"  ⭐ 最優先発明原理: {priority[:8]}")
+    print()
+
+
 def apply_principles_batch(
     client,
     idea: str,
@@ -398,6 +520,7 @@ def evaluate_business_feasibility(
     original_idea: str,
     generated_ideas: list[dict],
     top_n: int = 5,
+    contradiction_analysis: dict = None,
 ) -> list[dict]:
     """生成されたアイデアをビジネス実現性の観点で評価・ランキングする。"""
 
@@ -409,8 +532,21 @@ def evaluate_business_feasibility(
         if item.get("new_idea")
     )
 
-    prompt = f"""あなたは事業開発・スタートアップ投資の専門家です。以下のアイデアリストを、ビジネス実現性の観点で評価してください。
+    # 矛盾マトリックス情報を評価プロンプトに追加
+    contradiction_context = ""
+    if contradiction_analysis and contradiction_analysis.get("contradictions"):
+        essence = contradiction_analysis.get("problem_essence", "")
+        priority = contradiction_analysis.get("priority_principles", [])
+        contradiction_context = f"""
+## 矛盾マトリックス分析結果（評価に考慮すること）
+問題の本質: {essence}
+矛盾マトリックスが推奨する優先発明原理: {priority}
+これらの原理から生成されたアイデアは、技術的矛盾の解決に直結するため、評価において加点的に考慮してください。
+"""
 
+    prompt = f"""あなたは事業開発・スタートアップ投資の専門家であり、TRIZ専門家でもあります。
+以下のアイデアリストを、ビジネス実現性とTRIZ矛盾解決の観点で総合評価してください。
+{contradiction_context}
 ## オリジナルアイデア
 {original_idea}
 
@@ -559,10 +695,11 @@ def print_results(evaluation: dict, original_idea: str):
     print()
 
 
-def save_results(evaluation: dict, original_idea: str, all_ideas: list[dict], output_file: str):
+def save_results(evaluation: dict, original_idea: str, all_ideas: list[dict], output_file: str, contradiction_analysis: dict = None):
     """結果をJSONファイルに保存する。"""
     output = {
         "original_idea": original_idea,
+        "contradiction_analysis": contradiction_analysis or {},
         "all_generated_ideas": all_ideas,
         "evaluation": evaluation,
     }
@@ -588,38 +725,64 @@ def run_triz_agent(
     print(f"  🏆 上位表示数: {top_n}件")
     print()
 
-    # ── フェーズ1: 40原理の適用 ──────────────────────────
+    # ── Phase 0: 矛盾マトリックス分析 ────────────────────
+    print("━" * 65)
+    print("  Phase 0: 矛盾マトリックスで技術的矛盾を同定中...")
+    print("━" * 65)
+    contradiction_analysis = analyze_contradictions(client, idea)
+    print_contradiction_analysis(contradiction_analysis)
+    priority_principles = contradiction_analysis.get("priority_principles", [])
+
+    # ── フェーズ1: 40原理の適用（優先原理を先頭に） ──────
     print("━" * 65)
     print("  フェーズ 1/2: TRIZ 40原理を適用中...")
+    if priority_principles:
+        print(f"  （矛盾マトリックス推奨原理を優先: {priority_principles[:6]}）")
     print("━" * 65)
+
+    # 優先原理を先頭に並べ替え
+    priority_set = set(priority_principles)
+    priority_batch = [p for p in TRIZ_PRINCIPLES if p["id"] in priority_set]
+    remaining_batch = [p for p in TRIZ_PRINCIPLES if p["id"] not in priority_set]
+    ordered_principles = priority_batch + remaining_batch
 
     all_generated = []
     batches = [
-        TRIZ_PRINCIPLES[i : i + BATCH_SIZE]
-        for i in range(0, len(TRIZ_PRINCIPLES), BATCH_SIZE)
+        ordered_principles[i : i + BATCH_SIZE]
+        for i in range(0, len(ordered_principles), BATCH_SIZE)
     ]
 
     for i, batch in enumerate(batches):
         ids = [p["id"] for p in batch]
+        # 優先原理かどうかを示すマーク
+        mark = "⭐" if any(p["id"] in priority_set for p in batch) else "  "
         print_progress(i * BATCH_SIZE, len(TRIZ_PRINCIPLES), ids)
 
         results = apply_principles_batch(client, idea, batch, lang)
+        # 優先原理にフラグを付ける
+        for r in results:
+            r["is_priority"] = r.get("principle_id") in priority_set
         all_generated.extend(results)
 
         if verbose:
             for r in results:
-                print(f"    → 原理{r.get('principle_id')}: {r.get('new_idea', '')[:60]}...")
+                flag = "⭐" if r.get("is_priority") else "  "
+                print(f"  {flag} 原理{r.get('principle_id')}: {r.get('new_idea', '')[:60]}...")
 
     print_progress(len(TRIZ_PRINCIPLES), len(TRIZ_PRINCIPLES), [])
     print(f"\n  ✅ {len(all_generated)}件のアイデアを生成しました。")
+    print(f"     うち矛盾マトリックス推奨原理: {sum(1 for r in all_generated if r.get('is_priority'))}件")
     print()
 
     # ── フェーズ2: ビジネス実現性評価 ─────────────────────
     print("━" * 65)
     print("  フェーズ 2/2: ビジネス実現性を評価中...")
+    print("  （矛盾マトリックス推奨原理を優先考慮）")
     print("━" * 65)
 
-    evaluation = evaluate_business_feasibility(client, idea, all_generated, top_n)
+    evaluation = evaluate_business_feasibility(
+        client, idea, all_generated, top_n, contradiction_analysis
+    )
     print(f"  ✅ 評価完了。上位{top_n}件に絞り込みました。")
     print()
 
@@ -628,7 +791,7 @@ def run_triz_agent(
 
     # ── ファイル保存 ───────────────────────────────────────
     if output_file:
-        save_results(evaluation, idea, all_generated, output_file)
+        save_results(evaluation, idea, all_generated, output_file, contradiction_analysis)
 
     return evaluation, all_generated
 
