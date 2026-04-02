@@ -544,8 +544,8 @@ def evaluate_business_feasibility(
 これらの原理から生成されたアイデアは、技術的矛盾の解決に直結するため、評価において加点的に考慮してください。
 """
 
-    prompt = f"""あなたは事業開発・スタートアップ投資の専門家であり、TRIZ専門家でもあります。
-以下のアイデアリストを、ビジネス実現性とTRIZ矛盾解決の観点で総合評価してください。
+    prompt = f"""あなたは事業開発・技術経営・スタートアップ投資の世界的専門家であり、TRIZ発明手法の上級実践者でもあります。
+以下のアイデアリストを、ビジネス実現性・技術的矛盾解決・市場インパクトの観点で深く分析・評価してください。
 {contradiction_context}
 ## オリジナルアイデア
 {original_idea}
@@ -554,21 +554,22 @@ def evaluate_business_feasibility(
 {ideas_text}
 
 ## 評価基準（各10点満点）
-1. **市場規模・成長性**: 対象市場の大きさと将来性
-2. **実現容易性**: 技術的・資金的・規制面での実現のしやすさ
-3. **収益モデル明確性**: マネタイズの明確さと持続可能性
-4. **競合優位性**: 差別化要因と参入障壁
-5. **イノベーション度**: 既存解決策からの革新性
+1. **市場規模・成長性**: TAM/SAM/SOMの規模、CAGR、将来の市場トレンド
+2. **実現容易性**: 技術成熟度（TRL）、資金調達難易度、規制・特許リスク
+3. **収益モデル明確性**: マネタイズ手法の多様性、LTV/CAC比、サブスクリプション/ライセンス/従量課金等
+4. **競合優位性**: 差別化要因、ネットワーク効果、スイッチングコスト、参入障壁の高さ
+5. **イノベーション度**: 技術的破壊性、既存ソリューションからの乖離度、特許取得可能性
 
-上位{top_n}件を選び、以下のJSON形式で出力してください：
+上位{top_n}件を選び、各アイデアについて**500〜1000字相当の詳細評価**を行ってください。
+以下のJSON形式で出力してください：
 {{
   "top_ideas": [
     {{
       "rank": 1,
       "principle_id": <原理番号>,
       "principle_name": "<原理名>",
-      "idea": "<アイデア内容>",
-      "target_market": "<対象市場>",
+      "idea": "<アイデア内容（2〜3文）>",
+      "target_market": "<対象市場（具体的な業界・セグメント）>",
       "scores": {{
         "market_size": <点数>,
         "feasibility": <点数>,
@@ -577,15 +578,20 @@ def evaluate_business_feasibility(
         "innovation": <点数>
       }},
       "total_score": <合計点数>,
-      "why_promising": "<このアイデアが有望な理由（2〜3文）>",
-      "key_risks": "<主要なリスクと対策（1〜2文）>",
-      "next_steps": "<最初に取るべきアクション（箇条書き3点）"
+      "current_problems": "<現状の課題と問題点：現行ソリューションの技術的・ビジネス的限界、業界が直面している構造的問題、ユーザーが我慢している痛点を、業界専門用語を用いて詳述する。150〜200字>",
+      "how_it_solves": "<本アイデアによる解決メカニズム：TRIZの発明原理がどのように技術的矛盾を解消し、現状課題を克服するか。物理的・化学的・情報的なメカニズムを含めて具体的に説明する。150〜200字>",
+      "existing_comparison": "<既存事例との比較：現在市場に存在する類似製品・サービス（具体的な企業名・製品名を挙げて）と本アイデアを比較し、何がどう優れているかを定量的・定性的に示す。150〜200字>",
+      "target_persona": "<ターゲットペルソナ：具体的な利用者像（役職・年齢・業種・抱える課題・意思決定プロセス）と、どのような環境・シーン・文脈でこの製品・サービスを使うかを詳述する。150〜200字>",
+      "concrete_companies": "<具体的な想定顧客企業・導入シナリオ：実在する企業名または類似企業を3〜5社挙げ、各社がどのようなユースケースでこのソリューションを導入するかを具体的に記述する。150〜200字>",
+      "why_promising": "<有望な理由（深層分析）：市場タイミング、技術トレンド、規制動向、地政学的要因なども含めた多角的な視点から、なぜ今このアイデアが有望かを論じる。150〜200字>",
+      "key_risks": "<主要リスクと対策：技術リスク・市場リスク・競合リスク・規制リスクを項目別に整理し、各リスクに対する具体的なミティゲーション戦略を記述する。150〜200字>",
+      "next_steps": ["<ネクストアクション1（誰が・何を・いつまでに）>", "<ネクストアクション2>", "<ネクストアクション3>", "<ネクストアクション4>", "<ネクストアクション5>"]
     }}
   ],
-  "summary": "<全体的な考察（3〜5文）>"
+  "summary": "<総合考察：全アイデアを俯瞰したポートフォリオ分析、推奨する優先順位とその根拠、業界全体への影響、中長期的な技術ロードマップの方向性を含む深い考察。300〜500字>"
 }}
 
-JSONのみ出力してください。"""
+各フィールドは指定字数を守り、業界専門用語・定量データ・固有名詞を積極的に使用してください。JSONのみ出力してください。"""
 
     response_text = _call_llm(client, prompt)
 
@@ -661,17 +667,52 @@ def print_results(evaluation: dict, original_idea: str):
             print(f"    {label:<14} [{bar}] {score}/10")
         print()
 
+        current_problems = item.get("current_problems", "")
+        if current_problems:
+            wrapped = textwrap.fill(current_problems, width=60, initial_indent="  ", subsequent_indent="  ")
+            print(f"  🔴 現状の課題・問題点:")
+            print(wrapped)
+            print()
+
+        how_it_solves = item.get("how_it_solves", "")
+        if how_it_solves:
+            wrapped = textwrap.fill(how_it_solves, width=60, initial_indent="  ", subsequent_indent="  ")
+            print(f"  🔧 解決メカニズム:")
+            print(wrapped)
+            print()
+
         why = item.get("why_promising", "")
         if why:
             wrapped = textwrap.fill(why, width=60, initial_indent="  ", subsequent_indent="  ")
-            print(f"  ✅ 有望な理由:")
+            print(f"  ✅ 有望な理由（深掘り分析）:")
+            print(wrapped)
+            print()
+
+        existing_comparison = item.get("existing_comparison", "")
+        if existing_comparison:
+            wrapped = textwrap.fill(existing_comparison, width=60, initial_indent="  ", subsequent_indent="  ")
+            print(f"  📊 既存ソリューションとの比較:")
+            print(wrapped)
+            print()
+
+        target_persona = item.get("target_persona", "")
+        if target_persona:
+            wrapped = textwrap.fill(target_persona, width=60, initial_indent="  ", subsequent_indent="  ")
+            print(f"  👤 ターゲットペルソナ:")
+            print(wrapped)
+            print()
+
+        concrete_companies = item.get("concrete_companies", "")
+        if concrete_companies:
+            wrapped = textwrap.fill(concrete_companies, width=60, initial_indent="  ", subsequent_indent="  ")
+            print(f"  🏢 想定顧客企業:")
             print(wrapped)
             print()
 
         risks = item.get("key_risks", "")
         if risks:
             wrapped = textwrap.fill(risks, width=60, initial_indent="  ", subsequent_indent="  ")
-            print(f"  ⚠️  主要リスク:")
+            print(f"  ⚠️  主要リスクと対策:")
             print(wrapped)
             print()
 
@@ -680,10 +721,10 @@ def print_results(evaluation: dict, original_idea: str):
             print(f"  🚀 ネクストアクション:")
             # リスト形式と文字列形式の両方に対応
             lines = next_steps if isinstance(next_steps, list) else next_steps.split("\n")
-            for line in lines:
+            for i, line in enumerate(lines, 1):
                 line = str(line).strip()
                 if line:
-                    print(f"     {line}")
+                    print(f"     {i}. {line}")
         print()
 
     print("═" * 65)
